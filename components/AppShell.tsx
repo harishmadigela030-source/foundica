@@ -571,7 +571,7 @@ export default function AppShell({ initialPricing, needsCode }: { initialPricing
   const sidebar = (
     <aside className={`side ${side ? 'open' : ''}`} aria-label="Foundica navigation">
       <div className="row between" style={{ padding: '4px 6px 10px' }}>
-        <Link href="/" className="brand" style={{ fontSize: 17 }}><Logo size={28} />Foundica</Link>
+        <Link href="/welcome" className="brand" style={{ fontSize: 17 }}><Logo size={28} />Foundica</Link>
         <button className="iconbtn mobile-only" onClick={() => setSide(false)} aria-label="Close menu">✕</button>
       </div>
       <button className="newbtn" onClick={newReport}><span aria-hidden="true">＋</span> New founder report</button>
