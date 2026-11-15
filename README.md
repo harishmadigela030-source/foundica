@@ -80,3 +80,18 @@ npm test          # citation extraction, scoring, critic adjustments, PDF text, 
 - The rate limiter is in memory.
 - The built-in PDF fonts are Latin-only: other scripts are dropped from the PDF (the web report shows them fine).
 - AI output can be wrong; the report says so and links every claim to its source.
+
+## Launch build (chat workspace, accounts, payments)
+
+- `/app` is the product: a chat-style workspace (sidebar history, composer, live agent run with sources, report and problem map inline). The landing and policy pages live in `app/(site)`.
+- **Intake agent** (`/api/intake`): the founder writes in plain words; the agent fills the fields; the next question is chosen in code (`lib/intake.ts`).
+- **Accounts**: email 6-digit code (Resend), signed session cookie (`AUTH_SECRET`), optional WhatsApp number for updates. Without `RESEND_API_KEY` the code is shown on screen (test mode only).
+- **Storage**: Upstash Redis via REST (`KV_REST_API_URL/TOKEN`). Users, credits, reports, maps. Falls back to memory locally.
+- **Payments**: Dodo Payments checkout → credits granted once per payment id (webhook `/api/pay/webhook` and return check `/api/pay/confirm`). No key = free.
+- Pilot pricing: ₹499 per credit, ₹999 for 3. One credit = one Founder Report or one Problem Map. Customer-loop updates are free.
+- Local test with everything mocked: `MOCK_AI=1 DODO_PAYMENTS_API_KEY=mock_x npm run dev`.
+
+## Founder journey (stages 2 and 3)
+
+- Stage 2 **Problem map**: buyer research (live web search) + problem-map agent → workflow, who pays, workaround, cost, problem layers, 6 riskiest assumptions, where to find buyers (cited), interview script.
+- Stage 3 **Customer loop**: each logged interview marks assumptions validated / killed, adds new ones and writes next questions. Evidence score = interviews (up to 40) + risk-weighted assumptions resolved (up to 60).

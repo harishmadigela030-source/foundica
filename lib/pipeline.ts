@@ -11,6 +11,7 @@ import {
   type Report,
   type Research,
   type StreamEvent,
+  type Tier,
 } from './types';
 
 const YEAR = new Date().getFullYear();
@@ -141,7 +142,7 @@ ${founderBlock(i)}
 COMPETITORS FOUND: ${JSON.stringify(comp.competitors.map((c) => ({ name: c.name, type: c.type, threat: c.threat })))}
 
 RESEARCH BRIEF:
-${briefWithMarkers(r, 14000)}
+${r.sources.length ? briefWithMarkers(r, 14000) : '(Quick Score: no live research was run. Judge from the founder data only, leave source_ids empty, and say where live research would change the finding.)'}
 
 Reply with ONLY this JSON:
 {"tests": [{"key": "<test key>", "score": <0-10>, "finding": "one or two sentences", "source_ids": [<numbers or empty>]}],
@@ -240,22 +241,35 @@ export function applyCritic(v: Record<string, unknown>, fmf: Fmf, dur: Durabilit
 }
 
 /* ---------- orchestrator ---------- */
-export async function runAssessment(i: Intake, emit: (e: StreamEvent) => void): Promise<Report> {
+export const EMPTY_RESEARCH: Research = { segments: [], sources: [], queries: [] };
+
+export async function runAssessment(i: Intake, emit: (e: StreamEvent) => void, tier: Tier = 'full'): Promise<Report> {
   const step = (n: number, status: 'run' | 'done' | 'error', note?: string) => emit({ type: 'step', step: n, status, note });
+  const quick = tier === 'quick';
 
   // FMF needs no web search, so it runs alongside the research.
   step(0, 'run');
-  step(1, 'run');
   const fmfP = fmfAgent(i).then((f) => (step(0, 'done', `Draft score ${f.score}/100 (the critic checks it next)`), f), (e) => (step(0, 'error'), Promise.reject(e)));
-  const resP = researchAgent(i, emit).then(
-    (r) => (step(1, 'done', `${r.queries.length} searches · ${r.sources.length} cited sources`), r),
-    (e) => (step(1, 'error'), Promise.reject(e)),
-  );
+  let resP: Promise<Research>;
+  if (quick) {
+    step(1, 'done', 'Skipped: live research is in the Full Report');
+    resP = Promise.resolve(EMPTY_RESEARCH);
+  } else {
+    step(1, 'run');
+    resP = researchAgent(i, emit).then(
+      (r) => (step(1, 'done', `${r.queries.length} searches · ${r.sources.length} cited sources`), r),
+      (e) => (step(1, 'error'), Promise.reject(e)),
+    );
+  }
   const [fmf, research] = await Promise.all([fmfP, resP]);
 
-  step(2, 'run');
-  const competition = await structureAgent(i, research);
-  step(2, 'done', `${competition.competitors.length} competitors mapped`);
+  let competition: Report['competition'] = { intensity: 0, competitors: [], facts: [] };
+  if (quick) step(2, 'done', 'Skipped: competitor map is in the Full Report');
+  else {
+    step(2, 'run');
+    competition = await structureAgent(i, research);
+    step(2, 'done', `${competition.competitors.length} competitors mapped`);
+  }
 
   step(3, 'run');
   const durability = await durabilityAgent(i, research, competition);
@@ -274,6 +288,7 @@ export async function runAssessment(i: Intake, emit: (e: StreamEvent) => void): 
   return {
     id: Math.random().toString(36).slice(2, 10) + Date.now().toString(36),
     createdAt: Date.now(),
+    tier,
     mock: isMock(),
     startup: { name: i.startupName, sector: i.sector, stage: i.stage, geography: i.geography || 'India', website: i.website, founder: i.founderName },
     fmf,

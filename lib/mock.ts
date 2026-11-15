@@ -91,6 +91,42 @@ export function mockJSON(kind: string): Record<string, unknown> {
         durability_adjustments: [{ key: 'platform_feature', score: 3, why: 'Big assistants already ship medical features.' }],
         half_life_years: null,
       };
+    case 'problemmap':
+      return {
+        summary: 'Demo: ER nurses lose time re-triaging walk-ins because vitals and history arrive late; the hospital pays through its quality budget.',
+        workflow: [
+          { step: 'Patient arrives, registration desk', pain: 'Wait 10-25 min before anyone checks vitals' },
+          { step: 'Nurse triage (paper or HIS form)', pain: 'Inconsistent scoring between nurses' },
+          { step: 'Doctor review', pain: 'Re-asks the same questions' },
+        ],
+        who_pays: { user: 'ER nurses', buyer: 'Medical superintendent', budget_owner: 'Hospital quality / operations head', budget: 'Not found: ask in interviews' },
+        workaround: 'Paper triage sheets and senior nurse judgment',
+        cost_of_problem: 'Delays in critical cases; NABH audit risk (to verify)',
+        layers: ['Symptom: long ER waits', 'Cause: triage is manual and inconsistent', 'Root: no structured data at the door, so no one can measure or improve triage'],
+        assumptions: [
+          { text: 'Hospitals measure ER door-to-triage time today', risk: 'high' },
+          { text: 'The medical superintendent can approve a pilot without a tender', risk: 'high' },
+          { text: 'Nurses will enter vitals on a tablet at the door', risk: 'high' },
+          { text: 'Hospitals will pay for faster triage, not just accept it free', risk: 'medium' },
+          { text: 'NABH accreditation creates pressure to fix triage', risk: 'medium' },
+          { text: 'HIS vendors do not already offer this', risk: 'low' },
+        ],
+        where_buyers: [
+          { segment: 'Private multi-specialty hospitals, 200+ beds', where: 'Demo: state hospital association events', source_ids: [1] },
+          { segment: 'Emergency medicine leaders', where: 'Demo: emergency medicine society conferences', source_ids: [2] },
+        ],
+        interview_script: ['Walk me through the last busy night in your ER.', 'What happened the last time triage went wrong?', 'How do you measure triage today?', 'Who would sign off on trying a new tool?', 'What have you tried already?'],
+      };
+    case 'loop':
+      return {
+        updates: [
+          { index: 0, status: 'killed', evidence: 'Demo: the nurse said nobody tracks door-to-triage time.' },
+          { index: 2, status: 'validated', evidence: 'Demo: nurses already use tablets for drug charts.' },
+        ],
+        new_assumptions: [{ text: 'Quality heads care more about audit scores than waiting time', risk: 'medium' }],
+        learnings: ['Demo: the pain is felt by nurses, but the budget sits with the quality head.'],
+        next_questions: ['Who gets blamed when a critical patient waits too long?', 'What do NABH auditors check in the ER?'],
+      };
     default:
       return {};
   }

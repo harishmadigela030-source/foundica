@@ -35,6 +35,9 @@ export const IntakeSchema = z.object({
   email: s(200),
   consent: z.boolean().default(false),
   accessCode: s(100),
+  // pricing: 'quick' = free score (no web research), 'full' = paid report with live research
+  tier: z.enum(['quick', 'full']).default('full'),
+  orderId: s(60),
 });
 export type Intake = z.infer<typeof IntakeSchema>;
 
@@ -106,8 +109,11 @@ export type Durability = {
 
 export type Critic = { confidence: number; warnings: string[]; unsupported: string[] };
 
+export type Tier = 'quick' | 'full';
+
 export type Report = {
   id: string;
+  tier?: Tier; // missing on reports made before pricing existed = full
   createdAt: number;
   mock: boolean;
   startup: { name: string; sector: string; stage: string; geography: string; website: string; founder: string };
@@ -124,7 +130,8 @@ export type StreamEvent =
   | { type: 'step'; step: number; status: 'run' | 'done' | 'error'; note?: string }
   | { type: 'query'; q: string }
   | { type: 'source'; source: { url: string; title: string } }
-  | { type: 'report'; report: Report }
+  | { type: 'report'; report: Report; creditsLeft?: number }
+  | { type: 'map'; map: import('./journey').ProblemMap; creditsLeft?: number }
   | { type: 'error'; message: string };
 
 export const STEPS = [

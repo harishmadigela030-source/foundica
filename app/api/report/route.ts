@@ -15,6 +15,7 @@ const ReportSchema = z.object({
   id: t(40),
   createdAt: z.number().catch(Date.now()),
   mock: z.boolean().catch(false),
+  tier: z.enum(['quick', 'full']).catch('full'),
   startup: z.object({ name: t(120), sector: t(120), stage: t(60), geography: t(120), website: t(200), founder: t(120) }),
   fmf: z.object({
     score: n(0, 100), summary: t(1000),

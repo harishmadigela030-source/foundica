@@ -16,7 +16,18 @@ function Bar({ v, max = 10, label }: { v: number; max?: number; label: string })
   );
 }
 
-export default function ReportView({ report: r, onNew }: { report: Report; onNew: () => void }) {
+function Locked({ what, onUpgrade, price }: { what: string; onUpgrade?: () => void; price?: string }) {
+  return (
+    <div className="card stack locked">
+      <strong>🔒 {what} is in the Full Report</strong>
+      <span className="muted small">The Full Report runs live web research, maps your real competitors with clickable sources, and has every claim checked against them.</span>
+      {onUpgrade ? <div><button className="btn sm" onClick={onUpgrade}>Get the Full Report{price ? ` · ${price}` : ''}</button></div> : null}
+    </div>
+  );
+}
+
+export default function ReportView({ report: r, onNew, onUpgrade, price, onMap }: { report: Report; onNew?: () => void; onUpgrade?: () => void; price?: string; onMap?: () => void }) {
+  const quick = r.tier === 'quick';
   const [tab, setTab] = useState<'overview' | 'fmf' | 'durability' | 'competitors' | 'sources'>('overview');
   const [dl, setDl] = useState<'idle' | 'busy' | 'error'>('idle');
   const S = r.research.sources;
@@ -45,22 +56,28 @@ export default function ReportView({ report: r, onNew }: { report: Report; onNew
     ['overview', 'Overview'],
     ['fmf', 'Founder-Market Fit'],
     ['durability', 'AI-Durability'],
-    ['competitors', `Competitors (${r.competition.competitors.length})`],
-    ['sources', `Sources (${S.length})`],
+    ['competitors', quick ? 'Competitors 🔒' : `Competitors (${r.competition.competitors.length})`],
+    ['sources', quick ? 'Sources 🔒' : `Sources (${S.length})`],
   ] as const;
 
   return (
     <section className="stack" style={{ gap: 20 }}>
+      {quick ? (
+        <div className="banner info row between" style={{ gap: 12 }}>
+          <span><strong>Free Quick Score.</strong> Founder-Market Fit and AI-durability from your answers only. Live competitor research and sources are in the Full Report.</span>
+          {onUpgrade ? <button className="btn sm" onClick={onUpgrade}>Upgrade{price ? ` · ${price}` : ''}</button> : null}
+        </div>
+      ) : null}
       {r.mock ? <div className="banner">Demo mode: this report uses sample data and example.com sources, not real research.</div> : null}
       <div className="row between">
         <div className="stack" style={{ gap: 4 }}>
-          <span className="muted small">Foundica Founder Report · {new Date(r.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+          <span className="muted small">Foundica {quick ? 'Quick Score' : 'Founder Report'} · {new Date(r.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
           <h1 style={{ fontSize: 34 }}>{r.startup.name}</h1>
           <span className="muted">{[r.startup.sector, r.startup.stage, r.startup.geography].filter(Boolean).join(' · ')}</span>
         </div>
         <div className="row">
-          <button className="btn" onClick={download} disabled={dl === 'busy'}>{dl === 'busy' ? 'Preparing PDF…' : 'Download free PDF'}</button>
-          <button className="btn ghost" onClick={onNew}>New report</button>
+          <button className="btn" onClick={download} disabled={dl === 'busy'}>{dl === 'busy' ? 'Preparing PDF…' : 'Download PDF'}</button>
+          {onNew ? <button className="btn ghost" onClick={onNew}>New report</button> : null}
         </div>
       </div>
       {dl === 'error' ? <div className="banner" role="alert">The PDF could not be created. Please try again.</div> : null}
@@ -83,8 +100,12 @@ export default function ReportView({ report: r, onNew }: { report: Report; onNew
         </div>
         <div className="card stack" style={{ gap: 6 }}>
           <span className="muted small">Competition intensity</span>
-          <div className="row" style={{ alignItems: 'baseline', gap: 6 }}><span className="big">{r.competition.intensity}</span><span className="muted">/ 10</span></div>
-          <span className="hint">{r.competition.competitors.length} competitors found · {S.length} sources</span>
+          {quick ? (
+            <><div className="row" style={{ alignItems: 'baseline', gap: 6 }}><span className="big" aria-hidden="true">🔒</span></div><span className="hint">Needs live research (Full Report).</span></>
+          ) : (
+            <><div className="row" style={{ alignItems: 'baseline', gap: 6 }}><span className="big">{r.competition.intensity}</span><span className="muted">/ 10</span></div>
+            <span className="hint">{r.competition.competitors.length} competitors found · {S.length} sources</span></>
+          )}
         </div>
       </div>
 
@@ -104,6 +125,12 @@ export default function ReportView({ report: r, onNew }: { report: Report; onNew
                 <p style={{ margin: 0 }}>{r.fmf.summary}</p>
                 <div className="banner info">Biggest threat: {r.durability.biggestThreat}</div>
               </div>
+              <div className="card stack" style={{ borderColor: 'var(--blue)' }}>
+                <span className="muted small">Next: Stage 2</span>
+                <strong>Get the full picture of your customer&apos;s problem</strong>
+                <span className="small muted">Map how your customer works, who pays, your riskiest assumptions and where to find buyers. Then log interviews and watch the map learn.</span>
+                <div>{onMap ? <button className="btn sm" onClick={onMap}>Map my customer&apos;s problem</button> : <a className="btn sm" href="/app?new=map">Map my customer&apos;s problem</a>}</div>
+              </div>
               <div className="card stack">
                 <h2 style={{ fontSize: 19 }}>Your next steps</h2>
                 <ol style={{ margin: 0, paddingLeft: 20 }} className="stack">{r.nextSteps.map((s, i) => <li key={i}>{s}</li>)}</ol>
@@ -115,7 +142,7 @@ export default function ReportView({ report: r, onNew }: { report: Report; onNew
                 {r.critic.unsupported.length ? <div className="small"><strong>Not backed by evidence yet:</strong> {r.critic.unsupported.join(' · ')}</div> : null}
               </div>
             </div>
-            <div className="card stack">
+            {quick ? <Locked what="Live market research" onUpgrade={onUpgrade} price={price} /> : <div className="card stack">
               <div className="row between"><h2 style={{ fontSize: 19 }}>Market research</h2><span className="hint">{r.research.queries.length} live searches</span></div>
               {r.research.segments.length ? <Brief segments={r.research.segments} sources={S} /> : <span className="muted">No research text was returned.</span>}
               {r.competition.facts.length ? (
@@ -124,7 +151,7 @@ export default function ReportView({ report: r, onNew }: { report: Report; onNew
                   {r.competition.facts.map((f, i) => <div key={i} className="small">• {f.claim} <Cites ids={f.sourceIds} sources={S} /></div>)}
                 </div>
               ) : null}
-            </div>
+            </div>}
           </div>
         )}
 
@@ -187,7 +214,9 @@ export default function ReportView({ report: r, onNew }: { report: Report; onNew
           </div>
         )}
 
-        {tab === 'competitors' && (
+        {quick && tab === 'competitors' && <Locked what="Your competitor map" onUpgrade={onUpgrade} price={price} />}
+        {quick && tab === 'sources' && <Locked what="Cited sources" onUpgrade={onUpgrade} price={price} />}
+        {!quick && tab === 'competitors' && (
           <div className="card stack">
             <h2 style={{ fontSize: 19 }}>Competitor map</h2>
             <span className="hint">Only companies found in the live research are listed. Click a number to open its source.</span>
@@ -213,7 +242,7 @@ export default function ReportView({ report: r, onNew }: { report: Report; onNew
           </div>
         )}
 
-        {tab === 'sources' && (
+        {!quick && tab === 'sources' && (
           <div className="stack">
             <div className="grid g2">
               {S.map((s) => (

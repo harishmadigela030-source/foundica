@@ -46,11 +46,12 @@ const T = (p: { children: unknown; style?: TextStyle }) => <Text style={p.style}
 const refs = (ids: number[]) => (ids.length ? ' ' + ids.map((i) => `[${i}]`).join('') : '');
 
 function ReportDoc({ r }: { r: Report }) {
+  const quick = r.tier === 'quick';
   const date = new Date(r.createdAt).toISOString().slice(0, 10);
   return (
     <Document title={pdfText(`Foundica report - ${r.startup.name}`)} author="Foundica">
       <Page size="A4" style={st.page}>
-        <T style={st.brand}>Foundica · Founder Report</T>
+        <T style={st.brand}>{quick ? 'Foundica · Quick Score' : 'Foundica · Founder Report'}</T>
         <T style={st.h1}>{r.startup.name}</T>
         <T style={st.mute}>{[r.startup.sector, r.startup.stage, r.startup.geography, date, r.mock ? 'DEMO DATA' : ''].filter(Boolean).join(' · ')}</T>
 
@@ -92,6 +93,13 @@ function ReportDoc({ r }: { r: Report }) {
         <T style={{ fontFamily: 'Helvetica-Bold', marginTop: 8 }}>Moves that extend durability</T>
         {r.durability.moves.map((m, i) => <T key={i}>{`${i + 1}. ${m.move} (${m.impact})`}</T>)}
 
+        {quick ? (
+        <View style={st.note}>
+          <T style={{ fontFamily: 'Helvetica-Bold' }}>Free Quick Score</T>
+          <T>This report is based on your answers only. Live competitor research, the market brief and cited sources are in the Full Report at thefoundica.com.</T>
+        </View>
+        ) : (
+          <>
         <T style={st.h2}>Competitors</T>
         <View style={st.tr}><T style={[st.th, { width: '22%' }]}>Company</T><T style={[st.th, { width: '13%' }]}>Type</T><T style={[st.th, { width: '35%' }]}>What they do</T><T style={[st.th, { width: '18%' }]}>Scale</T><T style={[st.th, { width: '12%' }]}>Threat</T></View>
         {r.competition.competitors.map((c, i) => (
@@ -109,6 +117,8 @@ function ReportDoc({ r }: { r: Report }) {
         <T style={st.h2}>Research brief</T>
         <T>{r.research.segments.map((s) => s.text.replace(/^#+\s*/gm, '') + refs(s.sourceIds)).join('')}</T>
 
+          </>
+        )}
         {r.critic.warnings.length || r.critic.unsupported.length ? (
           <View style={st.note}>
             <T style={{ fontFamily: 'Helvetica-Bold' }}>Critic agent notes</T>
@@ -117,6 +127,8 @@ function ReportDoc({ r }: { r: Report }) {
           </View>
         ) : null}
 
+        {quick ? null : (
+          <>
         <T style={st.h2}>Sources</T>
         {r.research.sources.map((s) => (
           <View key={s.id} style={{ marginBottom: 4 }} wrap={false}>
@@ -126,6 +138,8 @@ function ReportDoc({ r }: { r: Report }) {
         ))}
         {!r.research.sources.length ? <T style={st.mute}>No sources were cited.</T> : null}
 
+          </>
+        )}
         <T style={[st.mute, { marginTop: 14, fontSize: 8 }]}>
           AI-generated assessment by Foundica agents using live web search. It can be wrong: check the sources. This is not investment, legal or financial advice.
         </T>

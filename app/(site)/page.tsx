@@ -7,10 +7,10 @@ const scores = [
 ];
 
 const steps = [
-  ['Answer 3 short sections', 'About you, your startup and your market. About 8 minutes.'],
-  ['Watch the agents work', 'See every web search and every source as it is found.'],
-  ['Get your report', 'Scores, competitors, a year-by-year outlook and next steps, with numbered citations.'],
-  ['Download it free', 'A PDF with all sources, ready to share with co-founders or investors.'],
+  ['1 · Fundamentals', 'Founder-Market Fit and AI-durability: are you the right founder, and will this last 5–10 years? Scored with reasons, checked by a critic agent.'],
+  ['2 · Problem map', "The full picture of your customer's problem: their workflow, who pays, what it costs, your riskiest assumptions and where to find buyers, with sources."],
+  ['3 · Customer loop', 'Talk to customers and log each conversation. The agent updates your assumptions, evidence score and next questions every time.'],
+  ['4 · First pilot & experts', 'With 10 interviews and real evidence, the next gate opens: a sector expert reviews your plan and your first paid pilot.'],
 ];
 
 export default function Home() {
@@ -24,13 +24,13 @@ export default function Home() {
             <p style={{ fontSize: 22, margin: 0, fontWeight: 500 }}>They teach you the math. We show you the real founder path.</p>
             <p className="muted" style={{ fontSize: 17, margin: 0 }}>
               Everyone can build now. What decides who wins is founder-market fit, a product that survives the next wave of AI, and the market around you.
-              Get all three, researched live with cited sources, in one free report.
+              Ask in plain words. Agents research live, cite every source, and hand you a report you can download.
             </p>
             <div className="row">
-              <Link href="/assess" className="btn">Get your free report</Link>
-              <Link href="#how" className="btn ghost">How it works</Link>
-            </div>
-            <span className="hint">Free · No sign-up · Download as PDF</span>
+              <Link href="/app" className="btn">Open Foundica</Link>
+              <Link href="/pricing" className="btn ghost">Pricing</Link>
+                          </div>
+            <span className="hint">Pilot price ₹499 per report · Email sign-in · Download as PDF</span>
           </div>
           <div className="card stack" aria-label="What the report contains">
             <span className="muted small">Your report</span>
@@ -58,11 +58,11 @@ export default function Home() {
       </section>
 
       <section id="how" className="wrap stack" style={{ gap: 24 }}>
-        <h2 style={{ fontSize: 34 }}>How it works</h2>
+        <h2 style={{ fontSize: 34 }}>The founder journey, step by step</h2>
+        <p className="muted" style={{ margin: 0, fontSize: 17 }}>Each stage has one job and one gate. You move on when you have the evidence, not when a program calendar says so.</p>
         <div className="grid g4">
-          {steps.map(([t, d], i) => (
+          {steps.map(([t, d]) => (
             <div key={t} className="card stack" style={{ gap: 8 }}>
-              <span style={{ fontFamily: 'var(--display)', fontWeight: 700, color: 'var(--blue)' }}>{String(i + 1).padStart(2, '0')}</span>
               <strong style={{ fontSize: 17 }}>{t}</strong>
               <span className="muted">{d}</span>
             </div>
@@ -71,9 +71,9 @@ export default function Home() {
         <div className="card row between" style={{ background: 'var(--blue)', color: '#fff', border: 0 }}>
           <div className="stack" style={{ gap: 4 }}>
             <h2 style={{ fontSize: 26 }}>Math is theory. This is what works.</h2>
-            <span style={{ color: '#e6ecfc' }}>Foundica is the science of founders. Start with the free report, then get verified by experts and introduced to investors.</span>
+            <span style={{ color: '#e6ecfc' }}>Foundica is the science of founders. Start with your founder report, then get verified by experts and introduced to investors.</span>
           </div>
-          <Link href="/assess" className="btn ghost">Start now</Link>
+          <Link href="/app" className="btn ghost">Start now</Link>
         </div>
       </section>
     </main>

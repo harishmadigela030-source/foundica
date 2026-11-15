@@ -1,8 +1,8 @@
 /** Simple per-IP limiter (in memory; resets when the server restarts). Good enough for a beta. */
 const hits = new Map<string, number[]>();
 
-export function rateLimited(ip: string): boolean {
-  const limit = Math.max(1, Number(process.env.FOUNDICA_RATE_LIMIT_PER_HOUR) || 5);
+export function rateLimited(ip: string, perHour?: number): boolean {
+  const limit = perHour ?? Math.max(1, Number(process.env.FOUNDICA_RATE_LIMIT_PER_HOUR) || 5);
   const now = Date.now();
   const recent = (hits.get(ip) || []).filter((t) => now - t < 3600_000);
   if (recent.length >= limit) {
